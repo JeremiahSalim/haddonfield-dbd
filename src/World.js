@@ -20,7 +20,25 @@ export class World {
         this.manualBulb = null;
 
         this.initBrokenLight();
+        // 🔥 NEW: Add Mist/Fog environment
+        this.initEnvironment(); 
         this.loadCity();
+    }
+
+    // 🌫️ ENVIRONMENT (MIST) SETUP
+    initEnvironment() {
+        // 1. Pick a color (Dark Grey/Blue for night atmosphere)
+        // If you want spooky white mist, change this to 0xcccccc
+        const fogColor = 0x111111; 
+
+        // 2. Set Background color (so the void isn't black)
+        this.scene.background = new THREE.Color(fogColor);
+
+        // 3. Add Linear Fog
+        // param 1: Color
+        // param 2: Near distance (Mist starts 20 units away from camera)
+        // param 3: Far distance (Everything is fully hidden by mist at 300 units)
+        this.scene.fog = new THREE.Fog(fogColor, 20, 300);
     }
 
     initBrokenLight() {
@@ -65,6 +83,19 @@ export class World {
 
                     // 2. 🎨 MATERIAL & SHADOWS
                     node.material = sanitizeMaterial(node.material);
+                    
+                    // 🔥 FIX: Force shadows to calculate for BOTH sides of the faces.
+                    node.material.shadowSide = THREE.DoubleSide; 
+
+                    // 🌿 FOLIAGE FIX (Bushes/Trees/Leaves)
+                    // If the material has transparency but no alphaTest, it renders as a solid triangle.
+                    // We force alphaTest to "cut out" the leaf shapes.
+                    if (name.includes('bush') || name.includes('leaf') || name.includes('hedge') || name.includes('tree') || name.includes('plant') || name.includes('foliage')) {
+                        node.material.alphaTest = 0.5; // Discards pixels with opacity < 0.5
+                        node.material.transparent = false; // Turn OFF blending to fix depth/sorting issues
+                        node.material.side = THREE.DoubleSide; // Render both sides of leaves
+                    }
+
                     node.receiveShadow = true;
                     node.castShadow = true;
 
@@ -91,7 +122,6 @@ export class World {
 
                     // 5. 💡 NORMAL STREET LIGHT LOGIC (RESTORED!)
                     if ((fullName.includes('lamp') || fullName.includes('parklight')) && !isBrokenLight) {
-                        node.castShadow = false;
                         const meshWorldPos = new THREE.Vector3();
                         node.getWorldPosition(meshWorldPos);
                         
@@ -197,13 +227,9 @@ export class World {
 
                  // 3. 🌳 TREE TRUNK FIX 🌳
                  if (isTree) {
-                    // Instead of the geometric center (which includes leaves),
-                    // we grab the actual PIVOT position of the mesh (usually the bottom of trunk).
                     const rootPos = new THREE.Vector3();
                     node.getWorldPosition(rootPos);
 
-                    // Create a tighter box around the trunk position
-                    // Width = 4 units (radius 2)
                     box.min.x = rootPos.x - 2.0; 
                     box.max.x = rootPos.x + 2.0;
                     
@@ -211,7 +237,6 @@ export class World {
                     box.max.z = rootPos.z + 2.0;
                  }
 
-                 // Recalculate center for the collision logic
                  box.centerPoint = new THREE.Vector3();
                  box.getCenter(box.centerPoint);
                  this.obstacles.push(box);

@@ -29,21 +29,20 @@ const cinematicShots = [
         endPos:   new THREE.Vector3(-68, 29, 21),
         lookDir:  new THREE.Vector3(-0.5, -0.3, 0.87) 
     },
-    // --- SCENE 5 (🔥 ROTATING CAMERA!) ---
+    // --- SCENE 5 ---
     {
-        duration: 5.0,
-        startPos: new THREE.Vector3(0, 20, 0),
-        endPos:   new THREE.Vector3(0, 20, 10),
-        // ROTATION: From looking Left... to looking Right
-        startLookDir: new THREE.Vector3(-1, 0, 0), 
-        endLookDir:   new THREE.Vector3(1, 0, 0)   
+        duration: 9.0,
+        startPos: new THREE.Vector3(-97, 2, 29),
+        endPos:   new THREE.Vector3(-97, 2, 30),
+        startLookDir: new THREE.Vector3(0.1, -0.1, 1), 
+        endLookDir:   new THREE.Vector3(0.2, 0.1, 1)   
     },
     // --- SCENE 6 ---
     {
         duration: 5.0,
-        startPos: new THREE.Vector3(-124, 13, 48.4),
+        startPos: new THREE.Vector3(-124, 13, 48),
         endPos:   new THREE.Vector3(-122, 13, 40),
-        startLookDir: new THREE.Vector3(0.79, 0, 0.37), 
+        startLookDir: new THREE.Vector3(0.8, 0, 0.37), 
         endLookDir:   new THREE.Vector3(0.62, 0, 0.62)   
     },
     // --- SCENE 7 ---
