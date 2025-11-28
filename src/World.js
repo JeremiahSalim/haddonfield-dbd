@@ -37,7 +37,7 @@ export class World {
 
     loadCity() {
         const loader = new GLTFLoader();
-        loader.load("./assets/complete_detail.glb", (gltf) => {
+        loader.load("./assets/complete_detail-v1.glb", (gltf) => {
             const model = gltf.scene;
             model.scale.set(5, 5, 5); 
             model.updateMatrixWorld(true);
