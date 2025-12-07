@@ -143,6 +143,8 @@ export class CinematicManager {
     update(dt) {
         if (!this.isActive) return;
 
+        if (this.player.mixer) this.player.mixer.update(dt);
+
         const shot = cinematicShots[this.currentShotIndex];
         this.shotTimer += dt;
         const progress = Math.min(this.shotTimer / shot.duration, 1.0);
@@ -165,10 +167,10 @@ export class CinematicManager {
         }
 
         // ============================================
-        // 🔪 MICHAEL MYERS LOGIC (FIXED)
+        // MICHAEL MYERS LOGIC
         // ============================================
         
-        // ⚠️ Helper variables to access Player Class
+        // Helper variables to access Player Class
         const pMesh = this.player.mesh; 
         const pModel = this.player.model;
 

@@ -20,12 +20,13 @@ export class World {
         this.manualBulb = null;
 
         this.initBrokenLight();
-        // 🔥 NEW: Add Mist/Fog environment
+        // Add Mist/Fog environment
         this.initEnvironment(); 
         this.loadCity();
+        this.loadTrashCan();
     }
 
-    // 🌫️ ENVIRONMENT (MIST) SETUP
+    // ENVIRONMENT (MIST) SETUP
     initEnvironment() {
         // 1. Pick a color (Dark Grey/Blue for night atmosphere)
         // If you want spooky white mist, change this to 0xcccccc
@@ -67,7 +68,7 @@ export class World {
                 if (node.isMesh) {
                     const name = node.name.toLowerCase();
 
-                    // 1. 🚔 SIREN LOGIC
+                    // 1. SIREN LOGIC
                     if (name.includes('chapman73_lightbar')) {
                         node.visible = false;
                         if (!sirenCreated) {
@@ -81,18 +82,18 @@ export class World {
                         return;
                     }
 
-                    // 2. 🎨 MATERIAL & SHADOWS
+                    // 2. MATERIAL & SHADOWS
                     node.material = sanitizeMaterial(node.material);
                     
-                    // 🔥 FIX: Force shadows to calculate for BOTH sides of the faces.
+                    // Force shadows to calculate for BOTH sides of the faces.
                     node.material.shadowSide = THREE.DoubleSide; 
 
-                    // 🌿 FOLIAGE FIX (Bushes/Trees/Leaves)
+                    // FOLIAGE (Bushes/Trees/Leaves)
                     // If the material has transparency but no alphaTest, it renders as a solid triangle.
                     // We force alphaTest to "cut out" the leaf shapes.
                     if (name.includes('bush') || name.includes('leaf') || name.includes('hedge') || name.includes('tree') || name.includes('plant') || name.includes('foliage')) {
                         node.material.alphaTest = 0.5; // Discards pixels with opacity < 0.5
-                        node.material.transparent = false; // Turn OFF blending to fix depth/sorting issues
+                        node.material.transparent = false;
                         node.material.side = THREE.DoubleSide; // Render both sides of leaves
                     }
 
@@ -103,13 +104,8 @@ export class World {
                     const fullName = name + " " + parentName;
                     let isBrokenLight = false;
 
-                    // 3. 🎃 HALLOWEEN PUMPKIN
-                    if (name.includes('pumpkin') && node.material) {
-                        node.material.emissive = new THREE.Color(0xffaa00);
-                        node.material.emissiveIntensity = 0.5;
-                    }
 
-                    // 4. 🔥 BROKEN LIGHT LOGIC (The flickering one)
+                    // 4. BROKEN LIGHT LOGIC (The flickering one)
                     if (name.includes('lamp') && !brokenLightFound) {
                         const lampPos = new THREE.Vector3();
                         node.getWorldPosition(lampPos);
@@ -120,7 +116,7 @@ export class World {
                         isBrokenLight = true;
                     }
 
-                    // 5. 💡 NORMAL STREET LIGHT LOGIC (RESTORED!)
+                    // 5. NORMAL STREET LIGHT LOGIC (RESTORED!)
                     if ((fullName.includes('lamp') || fullName.includes('parklight')) && !isBrokenLight) {
                         const meshWorldPos = new THREE.Vector3();
                         node.getWorldPosition(meshWorldPos);
@@ -152,7 +148,7 @@ export class World {
                         }
                     }
 
-                    // 6. 🚧 OBSTACLE GENERATION
+                    // 6. OBSTACLE GENERATION
                     this.generateObstacle(node, fullName);
                 }
             });
@@ -165,14 +161,61 @@ export class World {
         });
     }
 
+    loadTrashCan() {
+        const loader = new GLTFLoader();
+        loader.load("./assets/trash_can.glb", (gltf) => {
+            const model = gltf.scene;
+
+            // 1. Position & Scale
+            model.position.set(-10, 2.3, 70);
+            model.scale.set(5, 5, 5); 
+            
+            // 2. Shadows & Materials
+            model.traverse((node) => {
+                if (node.isMesh) {
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+
+                    const oldMat = node.material;
+                    
+                    const newMat = new THREE.MeshPhongMaterial({
+                        map: oldMat.map,
+                        
+                        // DIFFUSE (The base color of the object)
+                        color: 0x888888,       
+                        
+                        // THIS IS SPECULAR (The color of the shiny reflection)
+                        specular: 0xffffff,    
+                        
+                        // Lower this to make the shiny spot BIGGER (easier to see)
+                        shininess: 50,         
+                        
+                        side: THREE.DoubleSide 
+                    });
+
+                    node.material = newMat;
+                }
+            });
+
+            this.scene.add(model);
+
+            // 3. Add to Obstacles
+            const box = new THREE.Box3().setFromObject(model);
+            box.centerPoint = new THREE.Vector3();
+            box.getCenter(box.centerPoint); 
+            this.obstacles.push(box);
+        });
+    }
+
     createSiren(node) {
         const barPos = new THREE.Vector3();
         node.getWorldPosition(barPos);
         barPos.y -= 0.4; barPos.z -= 2; barPos.x += 2;
 
+        //Difuse & Specular
         const tubeMesh = new THREE.Mesh(
             new THREE.CylinderGeometry(0.2, 0.3, 0.5, 16),
-            new THREE.MeshPhongMaterial({color: 0x888888, transparent: true, opacity: 0.8})
+            new THREE.MeshPhongMaterial({color: 0x888888, transparent: true, opacity: 0.8, specular: 0x444444, shininess: 100})
         );
         tubeMesh.position.copy(barPos);
         this.scene.add(tubeMesh);
@@ -225,7 +268,7 @@ export class World {
                  // 2. CAP HEIGHT TO 10 UNITS
                  box.max.y = box.min.y + 10;
 
-                 // 3. 🌳 TREE TRUNK FIX 🌳
+                 // 3. TREE TRUNK
                  if (isTree) {
                     const rootPos = new THREE.Vector3();
                     node.getWorldPosition(rootPos);

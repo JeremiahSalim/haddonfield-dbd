@@ -18,13 +18,12 @@ export function createScene() {
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
-    // Lights
+    // Ambient Lights
     scene.add(new THREE.AmbientLight(0xffffff, 0.3)); 
 
     const moon = new THREE.DirectionalLight(0xbfdfff, 0.5); 
     moon.position.set(300, 800, 200); 
     moon.castShadow = true;
-    // ... (Your existing shadow config)
     moon.shadow.mapSize.width = 1024; 
     moon.shadow.mapSize.height = 1024;
     moon.shadow.camera.near = 1;
